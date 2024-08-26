@@ -1,0 +1,222 @@
+---
+# tasks file for create_site
+- name: Create directory of the site {{ domain }}
+  file:
+    state: directory
+    path: "{{ path_sites }}/{{ domain }}"
+    owner: "{{ user_server_sites }}"
+    group: "{{ group_user_server_sites }}"
+    mode: "{{ permissions_sites_dirs }}"
+
+############## LINK MODE ##############
+- name: "Mode: link"
+  block:
+
+    - name: Checking of path existence resources taken from settings
+      stat:
+        path: "{{ path_site_from_links }}/{{ item }}"
+      register: link_source
+      with_items: "{{ site_links_resources.split(',') }}"
+
+    - name: Link creating
+      file:
+        src: "{{ path_site_from_links }}/{{ item.item }}"
+        dest: "{{ path_sites }}/{{ domain }}/{{ item.item }}"
+        state: link
+      when: item.stat.exists
+      with_items: "{{ link_source.results }}"
+
+    - include_tasks: "tasks/change_owner_and_group_symbolic_links.yaml"
+      vars:
+        path_links: "{{ site_links_resources.split(',') }}"
+        full_path: "{{ path_sites }}/{{ domain }}"
+
+    - name: Adding index.php file for a site
+      template:
+        src: "site_link_tpl/index.j2"
+        dest: "{{ path_sites }}/{{ domain }}/index.php"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_files }}"
+
+    - name: Extract database name from .settings.php
+      ansible.builtin.shell: |
+        php -r '
+        $settings = include "{{ path_site_from_links }}/bitrix/.settings.php";
+        echo $settings["connections"]["value"]["default"]["database"];
+        '
+      register: db_name_result
+      changed_when: false
+
+    - name: Set db_name variable
+      set_fact:
+        db_name: "{{ db_name_result.stdout }}"
+
+  when: mode == 'link'
+
+############## FULL MODE ##############
+- name: "Mode: full"
+  block:
+
+    - name: Creating array of urls
+      set_fact:
+        urls: "{{ download_bitrix_install_files_new_site.split(',') }}"
+      no_log: true
+
+    - name: Downloading Bitrix scripts
+      get_url:
+        url: "{{ item }}"
+        dest: "{{ path_sites }}/{{ domain }}"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_files }}"
+        timeout: "{{ timeout_download_bitrix_install_files_new_site }}"
+      ignore_errors: yes
+      with_items: "{{ urls }}"
+
+    - name: Creating of downloaded file names array
+      set_fact:
+        file_names_download: "{{ urls | map('basename') | list }}"
+      no_log: true
+
+    - name: Generating index.html using links of downloaded files
+      template:
+        dest: "{{ path_sites }}/{{ domain }}/index.html"
+        src: "site_full_tpl/index.j2"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_files }}"
+      no_log: true
+
+    - name: Installing of python3-pymysql
+      apt:
+        name: python3-pymysql
+        state: present
+
+    - name: Creating database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+
+    - name: Creating database user
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        state: present
+
+    - name: Creating directory bitrix/php_interface
+      file:
+        state: directory
+        path: "{{ path_sites }}/{{ domain }}/bitrix/php_interface"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_dirs }}"
+
+    - name: Generating dbconn.php file
+      template:
+        dest: "{{ path_sites }}/{{ domain }}/bitrix/php_interface/dbconn.php"
+        src: "site_full_tpl/dbconn.j2"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_files }}"
+
+    - name: Generate crypto key
+      set_fact:
+        crypto_key: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') }}"
+
+    - name: Read push-server config file
+      ansible.builtin.slurp:
+        src: "{{ push_server_config }}"
+      register: push_config_content
+
+    - name: Extract SECURITY_KEY and set push_key variable
+      set_fact:
+        push_key: "{{ push_config_content['content'] | b64decode | regex_search('SECURITY_KEY=\"([^\"]+)\"', '\\1') | first }}"
+
+    - name: Generating .settings.php file
+      template:
+        dest: "{{ path_sites }}/{{ domain }}/bitrix/.settings.php"
+        src: "site_full_tpl/.settings.j2"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_files }}"
+
+    - name: Creating directory from bitrix temporary files
+      file:
+        state: directory
+        path: "{{ bx_temporary_files_directory }}"
+        owner: "{{ user_server_sites }}"
+        group: "{{ group_user_server_sites }}"
+        mode: "{{ permissions_sites_dirs }}"
+        recurse: yes
+
+    - include_tasks: "tasks/add_cron_agents.yaml"
+      vars:
+        - path_file_run_cron: "{{ path_sites }}/{{ domain }}{{ bx_cron_agents_path_file_after_document_root }}"
+        - user_site: "{{ user_server_sites }}"
+        - group_user_site: "{{ group_user_server_sites }}"
+        - logs_path_dir: "{{ bx_cron_logs_path_dir }}"
+        - logs_path_file: "{{ bx_cron_logs_path_file }}"
+
+  when: mode == 'full'
+
+############## SITE FILES ##############
+- name: Adding .htaccess file
+  copy:
+    src: "site_files/.htaccess"
+    dest: "{{ path_sites }}/{{ domain }}"
+    owner: "{{ user_server_sites }}"
+    group: "{{ group_user_server_sites }}"
+    mode: "{{ permissions_sites_files }}"
+
+############## NGINX ##############
+- name: Creating directory from bitrix site settings
+  file:
+    state: directory
+    path: "/etc/{{ service_nginx_name }}/custom_conf.d/site_settings/{{ domain }}"
+    recurse: yes
+
+- name: Adding Nginx configuration file site
+  template:
+    dest: "/etc/{{ service_nginx_name }}/custom_conf.d/site_settings/{{ domain }}/bx_temp.conf"
+    src: "nginx_conf/bx_temp.j2"
+
+- name: Copying ssl_default.conf to ssl_{{ domain }}.conf
+  copy:
+    src: "nginx_files/ssl_conf/ssl_default.conf"
+    dest: "/etc/{{ service_nginx_name }}/ssl_conf/ssl_{{ domain }}.conf"
+
+- name: Adding Nginx configuration file
+  template:
+    dest: "{{ path_nginx_sites_conf }}/{{ domain }}.conf"
+    src: "nginx_conf/site.j2"
+
+- name: Creating symbol link (site_enable) for Nginx configuration file
+  file:
+    src: "{{ path_nginx_sites_conf }}/{{ domain }}.conf"
+    dest: "{{ path_nginx_sites_enabled }}/{{ domain }}.conf"
+    state: link
+
+- name: Restarting Nginx
+  systemd:
+    name: "{{ service_nginx_name }}"
+    state: restarted
+
+
+############## APACHE ##############
+- name: Adding Apache configuration file
+  template:
+    dest: "{{ path_apache_sites_conf }}/{{ domain }}.conf"
+    src: "apache_conf/site.j2"
+
+- name: Creating symbol link (site_enable) for Apache configuration file
+  file:
+    src: "{{ path_apache_sites_conf }}/{{ domain }}.conf"
+    dest: "{{ path_apache_sites_enabled }}/{{ domain }}.conf"
+    state: link
+
+- name: Restarting Apache
+  systemd:
+    name: "{{ service_apache_name }}"
+    state: restarted
