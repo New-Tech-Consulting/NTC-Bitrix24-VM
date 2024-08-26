@@ -399,7 +399,7 @@ then
 	rm /etc/apache2/sites-enabled/000-default.conf
 
 
-	sed -i 's|collation-server=utf8_general_ci|collation-server=utf8mb4_general_ci|' /etc/mysql/conf.d/z9_bitrix.cnf
+	sed -i 's|collation-server=utf8_general_ci|collation-server=utf8mb4_0900_ai_ci|' /etc/mysql/conf.d/z9_bitrix.cnf
 	chmod 644 ${mycnf} ${phpini} ${phpfpmcnf} ${croncnf} ${phpini2}
 
 	systemctl restart cron mysql php8.2-fpm apache2 nginx php8.2-fpm
