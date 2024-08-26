@@ -2,9 +2,9 @@
 # shellcheck disable=SC2034
 
 # General configs
-BS_VERSION_MENU="1.1.2"
+BS_VERSION_MENU="1.0.0"
 BS_PATH_SITES="/home/bitrix"
-BS_DEFAULT_SITE_NAME="bx-site"
+BS_DEFAULT_SITE_NAME="www"
 BS_PATH_DEFAULT_SITE="$BS_PATH_SITES/$BS_DEFAULT_SITE_NAME"
 BS_USER_SERVER_SITES="www-data"
 BS_GROUP_USER_SERVER_SITES="www-data"
@@ -13,8 +13,8 @@ BS_PERMISSIONS_SITES_FILES="0644"
 BS_EXCLUDED_DIRS_SITES=("temp" "tmp" "test" ".ssh")
 BS_SITE_LINKS_RESOURCES=("local" "bitrix" "upload" "images")
 BS_DOWNLOAD_BITRIX_INSTALL_FILES_NEW_SITE=(
-  "https://www.1c-bitrix.ru/download/scripts/bitrixsetup.php"
-  "https://www.1c-bitrix.ru/download/scripts/restore.php"
+  "https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/bitrixsetup.php"
+  "https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/restore.php"
 )
 BS_TIMEOUT_DOWNLOAD_BITRIX_INSTALL_FILES_NEW_SITE=30
 BS_SHOW_IP_CURRENT_SERVER_IN_MENU=true
@@ -46,7 +46,7 @@ BS_PHP_INSTALL_TEMPLATE=(
   "php-redis"
 )
 
-BS_DOWNLOAD_BITRIX_CONFIGS="https://dev.1c-bitrix.ru/docs/chm_files/debian.zip"
+BS_DOWNLOAD_BITRIX_CONFIGS="https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/debian.zip"
 
 # Ansible configs
 BS_ANSIBLE_RUN_PLAYBOOKS_PARAMS="-i localhost, -c local"
@@ -81,7 +81,7 @@ BS_PATH_APACHE_SITES_ENABLED="$BS_PATH_APACHE/sites-enabled"
 
 # Emulation Bitrix VM configs
 BS_VAR_NAME_BVM="BITRIX_VA_VER"
-BS_VAR_VALUE_BVM="99.99.99"
+BS_VAR_VALUE_BVM="12.00.00"
 BS_VAR_PATH_FILE_BVM="/etc/apache2/envvars"
 
 # SMTP configs

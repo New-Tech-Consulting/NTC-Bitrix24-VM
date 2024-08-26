@@ -28,13 +28,13 @@ main_menu(){
     local update_menu_action="";
     if [ -f "/tmp/new_version_menu.tmp" ]; then
       local nv=$(cat /tmp/new_version_menu.tmp)
-      msg_new_version_menu="\e[33m          New version of Debian Like BitrixVM
+      msg_new_version_menu="\e[33m          New version of NTC Bitrix24 VM
           (your version ${BS_VERSION_MENU} -> new version ${nv}) please follow the link
           \e]8;;${BS_REPOSITORY_URL}\a${BS_REPOSITORY_URL}\e]8;;\a or enter \"update_menu\" to update your menu\n\e[0m"
       update_menu_action="Enter \"update_menu\" to update your menu";
     fi
 
-    echo -e "          Welcome to the menu \"Debian Like BitrixVM\" version ${BS_VERSION_MENU}         \n\n";
+    echo -e "          Welcome to the menu \"NTC Bitrix24 VM\" version ${BS_VERSION_MENU}         \n\n";
     if [ $BS_SHOW_IP_CURRENT_SERVER_IN_MENU = true ]; then
       echo -e "          ${CURRENT_SERVER_IP}\n";
     fi

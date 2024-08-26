@@ -24,9 +24,9 @@
         mode: "{{ permissions_sites_dirs }}"
         recurse: yes
 
-    - name: Setting timezone to UTC
+    - name: Setting timezone to Europe/Rome
       ansible.builtin.command:
-        cmd: timedatectl set-timezone UTC
+        cmd: timedatectl set-timezone Europe/Rome
 
     - name: Restarting MySQL service
       service:
@@ -64,15 +64,6 @@
     - name: Creating of downloaded file names array
       set_fact:
         file_names_download: "{{ urls | map('basename') | list }}"
-      no_log: true
-
-    - name: Generating index.html using links of downloaded files
-      template:
-        dest: "{{ document_root }}/index.html"
-        src: "roles/create_site/templates/site_full_tpl/index.j2"
-        owner: "{{ user_server_sites }}"
-        group: "{{ group_user_server_sites }}"
-        mode: "{{ permissions_sites_files }}"
       no_log: true
 
     - name: Creating directory bitrix/php_interface

@@ -31,14 +31,6 @@
         path_links: "{{ site_links_resources.split(',') }}"
         full_path: "{{ path_sites }}/{{ domain }}"
 
-    - name: Adding index.php file for a site
-      template:
-        src: "site_link_tpl/index.j2"
-        dest: "{{ path_sites }}/{{ domain }}/index.php"
-        owner: "{{ user_server_sites }}"
-        group: "{{ group_user_server_sites }}"
-        mode: "{{ permissions_sites_files }}"
-
     - name: Extract database name from .settings.php
       ansible.builtin.shell: |
         php -r '
@@ -77,15 +69,6 @@
     - name: Creating of downloaded file names array
       set_fact:
         file_names_download: "{{ urls | map('basename') | list }}"
-      no_log: true
-
-    - name: Generating index.html using links of downloaded files
-      template:
-        dest: "{{ path_sites }}/{{ domain }}/index.html"
-        src: "site_full_tpl/index.j2"
-        owner: "{{ user_server_sites }}"
-        group: "{{ group_user_server_sites }}"
-        mode: "{{ permissions_sites_files }}"
       no_log: true
 
     - name: Installing of python3-pymysql

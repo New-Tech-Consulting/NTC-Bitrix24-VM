@@ -294,7 +294,7 @@ EOF
 
 deployConfig() {
 
-	wget -q 'https://dev.1c-bitrix.ru/docs/chm_files/debian.zip'
+	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/debian.zip'
   unzip debian.zip && rm debian.zip
   rsync -a --exclude=php.d ./debian/ /etc/
   rsync -a ./debian/php.d/ /etc/php/8.2/mods-available/
@@ -313,8 +313,8 @@ deployConfig() {
 
 deployInstaller() {
 	cd /home/bitrix/www
-	wget -q 'https://www.1c-bitrix.ru/download/scripts/bitrixsetup.php'
-	wget -q 'https://www.1c-bitrix.ru/download/scripts/restore.php'
+	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/bitrixsetup.php'
+	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/restore.php'
 	mkdir -p bitrix/php_interface
 	dbconn > bitrix/php_interface/dbconn.php
 	settings > bitrix/.settings.php
