@@ -311,7 +311,7 @@ then
 	chown -R apache:apache /home/www-data
 	chmod 771 /home/www-data
   systemctl start mysql
-	mysql -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
+	mysql -e "create database sitemanager;create user bitrix0@localhost;grant all on sitemanager.* to bitrix0@localhost;set password for bitrix0@localhost = PASSWORD('${mypwddb}')"
 
 	envver=$(wget -qO- 'https://repos.1c-bitrix.ru/yum/SRPMS/' | grep -Eo 'bitrix-env-[0-9]\.[^src\.rpm]*'|sort -n|tail -n 1 | sed 's/bitrix-env-//;s/-/./')
   touch /etc/php-fpm.d/bx
@@ -356,7 +356,7 @@ then
 	apt install -y php8.2-opcache php8.2-mysqli php8.2-fpm php8.2-gd php8.2-curl php8.2-xml php8.2-mbstring mariadb-server mysql-common mariadb-client nginx catdoc exim4 exim4-config apache2 libapache2-mod-rpaf nftables
 	sed -i "s/dc_eximconfig_configtype='local'/dc_eximconfig_configtype='internet'/" /etc/exim4/update-exim4.conf.conf && dpkg-reconfigure --frontend noninteractive exim4-config
 	ip=$(wget -qO- "https://ipinfo.io/ip")
-	mariadb -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
+	mariadb -e "create database sitemanager;create user bitrix0@localhost;grant all on sitemanager.* to bitrix0@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
 	nfTabl
 
 	cd /home/www-data || exit

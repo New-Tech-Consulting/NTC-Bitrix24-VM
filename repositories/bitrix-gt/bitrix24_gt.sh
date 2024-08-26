@@ -545,7 +545,7 @@ then
 
 	systemctl enable redis php-fpm nginx httpd push-server mariadb
 	systemctl restart redis crond httpd nginx php-fpm mysql push-server
-	mysql -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
+	mysql -e "create database sitemanager;create user bitrix0@localhost;grant all on sitemanager.* to bitrix0@localhost;set password for bitrix0@localhost = PASSWORD('${mypwddb}')"
 fi
 
 
@@ -580,7 +580,7 @@ then
 	systemctl restart sysfsconf
 	sed -i "s/dc_eximconfig_configtype='local'/dc_eximconfig_configtype='internet'/" /etc/exim4/update-exim4.conf.conf && dpkg-reconfigure --frontend noninteractive exim4-config
 	ip=$(wget -qO- "https://ipinfo.io/ip")
-	mariadb -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
+	mariadb -e "create database sitemanager;create user bitrix0@localhost;grant all on sitemanager.* to bitrix0@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
 	nfTabl
 	dplRedis
 	dplPush

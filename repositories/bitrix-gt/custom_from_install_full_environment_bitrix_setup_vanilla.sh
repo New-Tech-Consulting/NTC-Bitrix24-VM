@@ -257,7 +257,7 @@ EOF
 
 dplMYSQL() {
 	echo 'innodb_strict_mode=off' >> /etc/mysql/my-bx.d/zbx-custom.cnf
-	mysql -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${DBPASS}')"
+	mysql -e "create database sitemanager;create user bitrix0@localhost;grant all on sitemanager.* to bitrix0@localhost;set password for bitrix0@localhost = PASSWORD('${DBPASS}')"
 	systemctl stop mysql
 	systemctl --now enable mysql
 	systemctl start mysql
@@ -294,7 +294,7 @@ EOF
 
 deployConfig() {
 
-	wget -q 'https://dev.1c-bitrix.ru/docs/chm_files/debian.zip'
+	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/debian.zip'
   unzip debian.zip && rm debian.zip
   rsync -a --exclude=php.d ./debian/ /etc/
   rsync -a ./debian/php.d/ /etc/php/8.2/mods-available/
