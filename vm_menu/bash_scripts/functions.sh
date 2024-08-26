@@ -34,7 +34,7 @@ main_menu(){
       update_menu_action="Enter \"update_menu\" to update your menu";
     fi
 
-    echo -e "          Welcome to the menu \"NTC Bitrix24 VM\" version ${BS_VERSION_MENU}         \n\n";
+    echo -e "          \"NTC Bitrix24 VM\" version ${BS_VERSION_MENU}         \n\n";
     if [ $BS_SHOW_IP_CURRENT_SERVER_IN_MENU = true ]; then
       echo -e "          ${CURRENT_SERVER_IP}\n";
     fi

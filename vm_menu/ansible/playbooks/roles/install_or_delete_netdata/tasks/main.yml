@@ -61,7 +61,7 @@
 
     - name: Deleting Netdata logs
       ansible.builtin.file:
-        path: /home/bitrix/logs/netdata
+        path: /home/www-data/logs/netdata
         state: absent
         recurse: yes
       ignore_errors: yes

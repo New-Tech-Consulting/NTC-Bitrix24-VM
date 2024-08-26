@@ -99,7 +99,7 @@ settings() {
 		      'log' => array (
 			  'settings' =>
 			  array (
-			    'file' => '/home/bitrix/logs/php/exceptions.log',
+			    'file' => '/home/www-data/logs/php/exceptions.log',
 			    'log_size' => 1000000,
 			),
 		      ),
@@ -210,7 +210,7 @@ dplRedis(){
 		echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
 		sysctl vm.overcommit_memory=1
 	  usermod -g www-data redis
-    chown root:www-data /etc/redis/ /home/bitrix/logs/redis/
+    chown root:www-data /etc/redis/ /home/www-data/logs/redis/
     [[ ! -d /etc/systemd/system/redis.service.d ]] && mkdir /etc/systemd/system/redis.service.d
     echo -e '[Service]\nGroup=www-data\nPIDFile=/run/redis/redis-server.pid' > /etc/systemd/system/redis.service.d/custom.conf
     systemctl daemon-reload
@@ -245,8 +245,8 @@ EOF
 	/usr/local/bin/push-server-multi configs sub
 	echo 'd /tmp/push-server 0770 bitrix www-data -' > /etc/tmpfiles.d/push-server.conf
 	systemd-tmpfiles --remove --create
-	[[ ! -d /home/bitrix/logs/push-server ]] && mkdir /home/bitrix/logs/push-server
-	chown bitrix:www-data /home/bitrix/logs/push-server
+	[[ ! -d /home/www-data/logs/push-server ]] && mkdir /home/www-data/logs/push-server
+	chown bitrix:www-data /home/www-data/logs/push-server
 
 	sed -i 's|User=.*|User=bitrix|;s|Group=.*|Group=www-data|;s|ExecStart=.*|ExecStart=/usr/local/bin/push-server-multi systemd_start|;s|ExecStop=.*|ExecStop=/usr/local/bin/push-server-multi stop|' /etc/systemd/system/push-server.service
 	systemctl daemon-reload
@@ -299,7 +299,7 @@ deployConfig() {
   rsync -a --exclude=php.d ./debian/ /etc/
   rsync -a ./debian/php.d/ /etc/php/8.2/mods-available/
   rsync -a ./debian/php.d/ /etc/php/7.4/mods-available/
-	mkdir -p /home/bitrix/www
+	mkdir -p /home/www-data/www
 
 	nfTabl
 	dplApache
@@ -312,13 +312,13 @@ deployConfig() {
 }
 
 deployInstaller() {
-	cd /home/bitrix/www
+	cd /home/www-data/www
 	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/bitrixsetup.php'
 	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/restore.php'
 	mkdir -p bitrix/php_interface
 	dbconn > bitrix/php_interface/dbconn.php
 	settings > bitrix/.settings.php
-	chown -R www-data:www-data /home/bitrix/www
+	chown -R www-data:www-data /home/www-data/www
 }
 
 installPkg

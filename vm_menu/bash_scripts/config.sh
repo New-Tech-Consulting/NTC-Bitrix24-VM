@@ -3,7 +3,7 @@
 
 # General configs
 BS_VERSION_MENU="1.0.0"
-BS_PATH_SITES="/home/bitrix"
+BS_PATH_SITES="/home/www-data"
 BS_DEFAULT_SITE_NAME="www"
 BS_PATH_DEFAULT_SITE="$BS_PATH_SITES/$BS_DEFAULT_SITE_NAME"
 BS_USER_SERVER_SITES="www-data"
@@ -15,13 +15,14 @@ BS_SITE_LINKS_RESOURCES=("local" "bitrix" "upload" "images")
 BS_DOWNLOAD_BITRIX_INSTALL_FILES_NEW_SITE=(
   "https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/bitrixsetup.php"
   "https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/restore.php"
+  "https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bx-files/index.php"
 )
 BS_TIMEOUT_DOWNLOAD_BITRIX_INSTALL_FILES_NEW_SITE=30
 BS_SHOW_IP_CURRENT_SERVER_IN_MENU=true
 
 # Bitrix agents configs
 BS_BX_CRON_AGENTS_PATH_FILE_AFTER_DOCUMENT_ROOT="/bitrix/modules/main/tools/cron_events.php"
-BS_BX_CRON_LOGS_PATH_DIR="/home/bitrix/logs/bitrix_cron_agents"
+BS_BX_CRON_LOGS_PATH_DIR="/home/www-data/logs/bitrix_cron_agents"
 BS_BX_CRON_LOGS_PATH_FILE="agents_cron.log"
 
 # PHP configs (VER#0.0 - it will be automatically replaced when the version is selected)

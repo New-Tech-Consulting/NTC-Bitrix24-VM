@@ -123,7 +123,7 @@ settings() {
 		      'log' => array (
 			  'settings' =>
 			  array (
-			    'file' => '/home/bitrix/logs/php/exceptions.log',
+			    'file' => '/home/www-data/logs/php/exceptions.log',
 			    'log_size' => 1000000,
 			),
 		      ),
@@ -219,9 +219,9 @@ fpmsetup() {
 			pm.start_servers = 2
 			pm.min_spare_servers = 2
 			pm.max_spare_servers = 5
-			slowlog = /home/bitrix/logs/php-fpm/www-slow.log
+			slowlog = /home/www-data/logs/php-fpm/www-slow.log
 			php_flag[display_errors] = off
-			php_admin_value[error_log] = /home/bitrix/logs/php-fpm/www-error.log
+			php_admin_value[error_log] = /home/www-data/logs/php-fpm/www-error.log
 			php_admin_flag[log_errors] = on
 			php_value[session.save_handler] = files
 			php_value[session.save_path]    = /var/lib/php/session
@@ -260,11 +260,11 @@ EOF
 
 cronagent(){
 	cat <<-EOF
-		*/5 * * * * ${1} /usr/bin/php /home/bitrix/bitrix/modules/main/tools/cron_events.php >/dev/null 2>&1
+		*/5 * * * * ${1} /usr/bin/php /home/www-data/bitrix/modules/main/tools/cron_events.php >/dev/null 2>&1
 	EOF
 }
 
-mkdir -p /home/bitrix
+mkdir -p /home/www-data
 
 if echo $os|grep -E '^CentOS[a-zA-Z ]*[7]{1}\.' > /dev/null
 then
@@ -294,7 +294,7 @@ then
 	chown mysql /var/run/mariadb
 	echo 'd /var/run/mariadb 0775 mysql -' > /etc/tmpfiles.d/mariadb.conf
 	[ $release -eq 7 ] && (firewall-cmd --zone=public --add-port=80/tcp --add-port=443/tcp --add-port=21/tcp --permanent && firewall-cmd --reload) || (iptables -I INPUT 1 -p tcp -m multiport --dports 21,80,443 -j ACCEPT && iptables-save > /etc/sysconfig/iptables)
-	cd /home/bitrix
+	cd /home/www-data
 	# wget -qO- http://rep.fvds.ru/cms/bitrixstable.tgz|tar -zxp
 	wget -qO- https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bitrix-gt/bitrixstable.tgz|tar -zxp
 	mv -f ./nginx/* /etc/nginx/
@@ -308,8 +308,8 @@ then
 	fpmsetup 'apache' > ${phpfpmcnf}
 	cronagent 'apache' > ${croncnf}
 	mysqlcnf > ${mycnf}
-	chown -R apache:apache /home/bitrix
-	chmod 771 /home/bitrix
+	chown -R apache:apache /home/www-data
+	chmod 771 /home/www-data
   systemctl start mysql
 	mysql -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
 
@@ -359,7 +359,7 @@ then
 	mariadb -e "create database bitrix;create user bitrix@localhost;grant all on bitrix.* to bitrix@localhost;set password for bitrix@localhost = PASSWORD('${mypwddb}')"
 	nfTabl
 
-	cd /home/bitrix || exit
+	cd /home/www-data || exit
 	# wget -qO- http://rep.fvds.ru/cms/bitrixstable.tgz|tar -zxp
 	wget -qO- https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bitrix-gt/bitrixstable.tgz|tar -zxp
 	mkdir -p bitrix/php_interface
@@ -373,7 +373,7 @@ then
 	a2enmod rewrite
 	a2enmod proxy
 	a2enmod proxy_fcgi
-	ln -s /home/bitrix/logs/apache2 /etc/apache2/logs
+	ln -s /home/www-data/logs/apache2 /etc/apache2/logs
 	echo 'Listen 127.0.0.1:8888' > /etc/apache2/ports.conf
 	apacheCnf >> /etc/apache2/apache2.conf
 	rm /etc/apache2/bx/conf/bx_apache_site_name_port.conf
@@ -386,7 +386,7 @@ then
 	fpmsetup 'www-data' > ${phpfpmcnf}
 	cronagent 'www-data' > ${croncnf}
 	mysqlcnf > ${mycnf}
-	chown -R www-data:www-data /home/bitrix
+	chown -R www-data:www-data /home/www-data
 	ln -s /var/lib/php/sessions /var/lib/php/session
 
 	envver=$(wget -qO- 'https://repos.1c-bitrix.ru/yum/SRPMS/' | grep -Eo 'bitrix-env-[0-9]\.[^src\.rpm]*'|sort -n|tail -n 1 | sed 's/bitrix-env-//;s/-/./')

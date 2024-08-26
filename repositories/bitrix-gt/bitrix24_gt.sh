@@ -91,7 +91,7 @@ dplRedis(){
 		echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
 		sysctl vm.overcommit_memory=1
 	  usermod -g www-data redis
-    chown redis:redis /etc/redis/ /home/bitrix/logs/redis/
+    chown redis:redis /etc/redis/ /home/www-data/logs/redis/
     [[ ! -d /etc/systemd/system/redis.service.d ]] && mkdir /etc/systemd/system/redis.service.d
     echo -e '[Service]\nGroup=www-data\nPIDFile=/run/redis/redis-server.pid' > /etc/systemd/system/redis.service.d/custom.conf
     systemctl daemon-reload
@@ -103,7 +103,7 @@ dplRedis(){
 fastDownload() {
 	cat <<-\EOF > ./fast.php
 		<?php
-		$_SERVER['DOCUMENT_ROOT'] = '/home/bitrix';
+		$_SERVER['DOCUMENT_ROOT'] = '/home/www-data';
 		$DOCUMENT_ROOT = $_SERVER['DOCUMENT_ROOT'];
 		define('NO_KEEP_STATISTIC', true);
 		define('NOT_CHECK_PERMISSIONS',true);
@@ -163,7 +163,7 @@ settings() {
 		      'log' => array (
 			  'settings' =>
 			  array (
-			    'file' => '/home/bitrix/logs/php/exceptions.log',
+			    'file' => '/home/www-data/logs/php/exceptions.log',
 			    'log_size' => 1000000,
 			),
 		      ),
@@ -283,9 +283,9 @@ fpmsetup() {
 		pm.start_servers = 2
 		pm.min_spare_servers = 2
 		pm.max_spare_servers = 5
-		slowlog = /home/bitrix/logs/php-fpm/www-slow.log
+		slowlog = /home/www-data/logs/php-fpm/www-slow.log
 		php_flag[display_errors] = off
-		php_admin_value[error_log] = /home/bitrix/logs/php-fpm/www-error.log
+		php_admin_value[error_log] = /home/www-data/logs/php-fpm/www-error.log
 		php_admin_flag[log_errors] = on
 		php_value[session.save_handler] = files
 		php_value[session.save_path]    = /var/lib/php/session
@@ -297,7 +297,7 @@ fpmsetup() {
 rediscnf() {
 	cat <<-EOF
 		pidfile /var/run/redis_6379.pid
-		logfile /home/bitrix/logs/redis/redis.log
+		logfile /home/www-data/logs/redis/redis.log
 		dir /var/lib/redis
 		bind 127.0.0.1
 		protected-mode yes
@@ -364,7 +364,7 @@ rediscnf() {
 cronagent(){
 	local user=${1}
 	cat <<-EOF
-		*/5 * * * * ${user} /usr/bin/php /home/bitrix/bitrix/modules/main/tools/cron_events.php >/dev/null 2>&1
+		*/5 * * * * ${user} /usr/bin/php /home/www-data/bitrix/modules/main/tools/cron_events.php >/dev/null 2>&1
 		0 * * * * root envver=\$(wget -qO- 'https://repos.1c-bitrix.ru/yum/SRPMS/' | grep -Eo 'bitrix-env-[0-9]\.[^src\.rpm]*'|sort -n|tail -n 1 | sed 's/bitrix-env-//;s/-/./') && touch /etc/php-fpm.d/bx && echo "env[BITRIX_VA_VER]=\${envver}" > /etc/php-fpm.d/bx && systemctl reload php-fpm && sed -i "/BITRIX_VA_VER/d;\\\$a SetEnv BITRIX_VA_VER \${envver}" /etc/httpd/bx/conf/00-environment.conf && systemctl reload httpd
 	EOF
 }
@@ -395,8 +395,8 @@ EOF
 	/usr/local/bin/push-server-multi configs sub
 	echo 'd /tmp/push-server 0770 bitrix www-data -' > /etc/tmpfiles.d/push-server.conf
 	systemd-tmpfiles --remove --create
-	[[ ! -d /home/bitrix/logs/push-server ]] && mkdir /home/bitrix/logs/push-server
-	chown bitrix:www-data /home/bitrix/logs/push-server
+	[[ ! -d /home/www-data/logs/push-server ]] && mkdir /home/www-data/logs/push-server
+	chown bitrix:www-data /home/www-data/logs/push-server
 
 	sed -i 's|User=.*|User=bitrix|;s|Group=.*|Group=www-data|;s|ExecStart=.*|ExecStart=/usr/local/bin/push-server-multi systemd_start|;s|ExecStop=.*|ExecStop=/usr/local/bin/push-server-multi stop|' /etc/systemd/system/push-server.service
 	systemctl daemon-reload
@@ -460,7 +460,7 @@ systemctl enable disable-thp
 }
 
 
-mkdir -p /home/bitrix
+mkdir -p /home/www-data
 
 if echo $os|grep -E '^CentOS[a-zA-Z ]*[7]{1}\.' > /dev/null
 then
@@ -517,7 +517,7 @@ then
 	chown mysql /var/run/mariadb
 	echo 'd /var/run/mariadb 0775 mysql -' > /etc/tmpfiles.d/mariadb.conf
 	[ $release -eq 7 ] && (firewall-cmd --zone=public --add-port=80/tcp --add-port=443/tcp --add-port=21/tcp --add-port=8893/tcp --permanent && firewall-cmd --reload) || (iptables -I INPUT 1 -p tcp -m multiport --dports 21,80,443 -j ACCEPT && iptables-save > /etc/sysconfig/iptables)
-	cd /home/bitrix
+	cd /home/www-data
 	# wget -qO- http://rep.fvds.ru/cms/bitrixstable.tgz|tar -zxp
 	wget -qO- https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bitrix-gt/bitrixstable.tgz|tar -zxp
 	mv -f ./nginx/* /etc/nginx/
@@ -535,8 +535,8 @@ then
 	cronagent 'apache' > ${croncnf}
 	mysqlcnf > ${mycnf}
 	ln -s /etc/nginx/bx/site_avaliable/push.conf /etc/nginx/bx/site_enabled/
-	chown -R apache:apache /home/bitrix
-	chmod 771 /home/bitrix
+	chown -R apache:apache /home/www-data
+	chmod 771 /home/www-data
 
 
 	echo "env[BITRIX_VA_VER]=${envver}" >> ${phpfpmcnf}
@@ -585,7 +585,7 @@ then
 	dplRedis
 	dplPush
 
-  cd /home/bitrix || exit
+  cd /home/www-data || exit
 	# wget -qO- http://rep.fvds.ru/cms/bitrixstable.tgz|tar -zxp
 	wget -qO- https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/main/repositories/bitrix-gt/bitrixstable.tgz|tar -zxp
 	mkdir -p bitrix/php_interface
@@ -599,7 +599,7 @@ then
 	a2enmod rewrite
 	a2enmod proxy
 	a2enmod proxy_fcgi
-	ln -s /home/bitrix/logs/apache2 /etc/apache2/logs
+	ln -s /home/www-data/logs/apache2 /etc/apache2/logs
 	echo 'Listen 127.0.0.1:8888' > /etc/apache2/ports.conf
 	apacheCnf >> /etc/apache2/apache2.conf
 	rm /etc/apache2/bx/conf/bx_apache_site_name_port.conf
@@ -612,7 +612,7 @@ then
 	fpmsetup 'www-data' > ${phpfpmcnf}
 	cronagent 'www-data' > ${croncnf}
 	mysqlcnf > ${mycnf}
-	chown -R www-data:www-data /home/bitrix
+	chown -R www-data:www-data /home/www-data
 	ln -s /var/lib/php/sessions /var/lib/php/session
 	ln -s /etc/nginx/bx/site_avaliable/push.conf /etc/nginx/bx/site_enabled/
 
