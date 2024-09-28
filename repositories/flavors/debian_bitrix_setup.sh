@@ -177,29 +177,32 @@ settings() {
 }
 
 installPkg(){
+  # Combine apt updates to reduce redundancy
   apt update -y
-  apt install -y \
-      # Core system tools
-      lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 rsync nftables pwgen make build-essential \
 
-      # Libraries for Nginx compilation and modules
+  # Install core system tools and libraries in one go
+  apt install -y \
+      lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 rsync nftables pwgen make build-essential \
       libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev \
       libxml2 libxml2-dev libxslt1.1 libxslt1-dev \
       libgd3 libgd-dev libgeoip-dev
 
-  echo "deb [signed-by=/etc/apt/trusted.gpg.d/suru.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list
-  curl -s -o /etc/apt/trusted.gpg.d/suru.gpg https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg
+  # Use '&&' for chaining commands to ensure they execute sequentially and stop if one fails
+  echo "deb [signed-by=/etc/apt/trusted.gpg.d/suru.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list && \
+  curl -s -o /etc/apt/trusted.gpg.d/suru.gpg https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg && \
   apt update -y
 
-  # Add Percona repository
-  curl -O https://repo.percona.com/apt/percona-release_latest.generic_all.deb
-  apt install -y ./percona-release_latest.generic_all.deb
-  apt update -y
+  # Streamline Percona repository addition
+  curl -O https://repo.percona.com/apt/percona-release_latest.generic_all.deb && \
+  apt install -y ./percona-release_latest.generic_all.deb && \
+  apt update -y && \
   percona-release setup ps80
 
-
+  # Set DEBIAN_FRONTEND before installing packages that might prompt for input
   export DEBIAN_FRONTEND="noninteractive"
   debconf-set-selections <<< 'exim4-config exim4/dc_eximconfig_configtype select internet site; mail is sent and received directly using SMTP'
+
+  # Install remaining packages
   apt install -y  php8.2 php8.2-cli \
                   php8.2-common php8.2-gd php8.2-ldap \
                   php8.2-mbstring php8.2-mysql \
