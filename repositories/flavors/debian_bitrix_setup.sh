@@ -12,6 +12,9 @@ tee < ${LOG_PIPE} ${LOG_FILE} &
 exec > ${LOG_PIPE}
 exec 2> ${LOG_PIPE}
 
+NGINX_VERSION="1.26.2"
+DOWNLOAD_URL_BASE="https://nginx.org/download"
+
 dbconn() {
 	cat <<-EOF
 		<?php
@@ -175,7 +178,14 @@ settings() {
 
 installPkg(){
   apt update -y
-  apt install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 rsync nftables pwgen make build-essential libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev
+  apt install -y \
+      # Core system tools
+      lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 rsync nftables pwgen make build-essential \
+
+      # Libraries for Nginx compilation and modules
+      libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev \
+      libxml2 libxml2-dev libxslt1.1 libxslt1-dev \
+      libgd3 libgd-dev libgeoip-dev
 
   echo "deb [signed-by=/etc/apt/trusted.gpg.d/suru.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list
   curl -s -o /etc/apt/trusted.gpg.d/suru.gpg https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php/apt.gpg
@@ -203,80 +213,78 @@ installPkg(){
                   exim4 exim4-config
 }
 
-installNginxWithModZip() {
-  apt update -y
+# Function to download and extract Nginx
+download_nginx() {
+    echo "Downloading Nginx..."
+    wget "${DOWNLOAD_URL_BASE}/nginx-${NGINX_VERSION}.tar.gz"
+    tar -xzf "nginx-${NGINX_VERSION}.tar.gz"
+    rm "nginx-${NGINX_VERSION}.tar.gz"
+}
 
-  # Download Nginx source code
-  NGINX_VERSION="1.26.1"
-  cd /tmp
-  wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
-  tar -xzvf nginx-$NGINX_VERSION.tar.gz
+# Function to download and extract additional modules
+download_modules() {
+    echo "Downloading additional modules..."
+    wget "https://www.openssl.org/source/openssl-3.2.2.tar.gz"
+    tar -xzf "openssl-3.2.2.tar.gz"
+    rm "openssl-3.2.2.tar.gz"
 
-  # Download mod_zip module
-  wget https://github.com/evanmiller/mod_zip/archive/master.zip
-  unzip master.zip
+    # Download other modules (replace with actual URLs)
+    wget "https://github.com/evanmiller/mod_zip/archive/master.zip"
+    unzip master.zip
+    rm master.zip
 
-  # Compile and install Nginx with mod_zip
-  cd nginx-$NGINX_VERSION
-  mkdir -p /var/lock
-  strace -f ./configure \
-    --with-cc-opt='-g -O2 -ffile-prefix-map=/build/nginx-AoTv4W/nginx-1.26.1=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2' \
-    --with-ld-opt='-Wl,-z,relro -Wl,-z,now \
-    --with-pcre=/usr/lib/x86_64-linux-gnu/libpcre.so \
-    --with-zlib=/usr/lib/x86_64-linux-gnu/libz.so
- -fPIC' \
-    --prefix=/usr/share/nginx \
-    --conf-path=/etc/nginx/nginx.conf \
-    --http-log-path=/home/bitrix/logs/nginx/access.log \
-    --error-log-path=stderr
- \
-    --lock-path=/var/lock/nginx.lock \
-    --pid-path=/run/nginx.pid \
-    --modules-path=/usr/lib/nginx/modules \
-    --http-client-body-temp-path=/var/lib/nginx/body \
-    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
-    --http-proxy-temp-path=/var/lib/nginx/proxy \
-    --http-scgi-temp-path=/var/lib/nginx/scgi \
-    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
-    --with-compat
- \
-    --with-debug \
-    --with-pcre-jit \
-    --with-http_ssl_module \
-    --with-http_stub_status_module \
-    --with-http_realip_module \
-    --with-http_auth_request_module \
-    --with-http_v2_module \
-    --with-http_dav_module \
-    --with-http_slice_module \
-    --with-threads \
-    --with-http_addition_module \
-    --with-http_flv_module
- \
-    --with-http_gunzip_module \
-    --with-http_gzip_static_module \
-    --with-http_mp4_module \
-    --with-http_random_index_module \
-    --with-http_secure_link_module
- \
-    --with-http_sub_module \
-    --with-mail_ssl_module \
-    --with-stream_ssl_module \
-    --with-stream_ssl_preread_module \
-    --with-stream_realip_module \
-    --with-http_geoip_module=dynamic \
-    --with-http_image_filter_module=dynamic \
-    --with-http_perl_module=dynamic \
-    --with-http_xslt_module=dynamic \
-    --with-mail=dynamic \
-    --with-stream=dynamic \
-    --with-stream_geoip_module=dynamic
- \
-    --add-dynamic-module=/tmp/mod_zip-master \
-    --with-openssl-opt='enable-tls1_3'
+    wget "https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v0.37.tar.gz" -O headers-more-nginx-module-0.37.tar.gz
+    tar -xzf headers-more-nginx-module-0.37.tar.gz
+    rm headers-more-nginx-module-0.37.tar.gz
 
-  make
-  make install
+}
+
+# Function to configure and compile Nginx
+configure_and_compile() {
+    echo "Configuring and compiling Nginx..."
+    cd "nginx-${NGINX_VERSION}" || exit
+
+    ./configure \
+        --prefix=/etc/nginx \
+        --sbin-path=/usr/sbin/nginx \
+        --conf-path=/etc/nginx/nginx.conf \
+        --error-log-path=/var/log/nginx/error.log \
+        --http-log-path=/var/log/nginx/access.log \
+        --pid-path=/var/run/nginx.pid \
+        --lock-path=/var/run/nginx.lock \
+        --http-client-body-temp-path=/var/cache/nginx/client_temp \
+        --http-proxy-temp-path=/var/cache/nginx/proxy_temp \
+        --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
+        --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
+        --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+        --user=nginx \
+        --group=nginx \
+        --with-openssl="/root/openssl-3.2.2" \
+        --with-openssl-opt=enable-tls1_3 \
+        --with-http_ssl_module \
+        --with-http_realip_module \
+        --with-http_addition_module \
+        --with-http_sub_module \
+        --with-http_dav_module \
+        --with-http_flv_module \
+        --with-http_mp4_module \
+        --with-http_gunzip_module \
+        --with-http_gzip_static_module \
+        --with-http_random_index_module \
+        --with-http_secure_link_module \
+        --with-http_stub_status_module \
+        --with-http_auth_request_module \
+        --with-http_v2_module \
+        --with-http_v3_module \
+        --with-mail \
+        --with-mail_ssl_module \
+        --with-file-aio \
+        --add-module="/root/mod_zip-master" \
+        --add-module="/root/headers-more-nginx-module-0.37" \
+        --with-cc-opt='-O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -m64 -march=x86-64-v2 -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection'
+
+    make
+    make install
 }
 
 dplApache(){
@@ -430,7 +438,9 @@ deployInstaller() {
 }
 
 installPkg
-installNginxWithModZip
+download_nginx
+download_modules
+configure_and_compile
 
 PUSH_KEY=$(pwgen 24 1)
 DB_PASS=$(generate_password 24)
