@@ -174,7 +174,6 @@ settings() {
 }
 
 installPkg(){
-  apt remove -y libpcre2-8-0
   apt update -y
   apt install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 rsync nftables pwgen make build-essential libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev
 
