@@ -184,7 +184,6 @@ installPkg(){
   # Add Percona repository
   wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
   dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
-  percona-release setup ps80
   apt update -y
 
   export DEBIAN_FRONTEND="noninteractive"
@@ -197,7 +196,7 @@ installPkg(){
                   php8.2-mcrypt php8.2-memcache \
                   php8.2-zip php8.2-pspell php8.2-xml \
                   apache2 \
-                  percona-server-server-8.0 percona-server-client \
+                  percona-server-server percona-server-client \
                   nodejs npm redis \
                   exim4 exim4-config
 }
