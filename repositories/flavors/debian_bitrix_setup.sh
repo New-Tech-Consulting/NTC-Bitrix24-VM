@@ -174,7 +174,8 @@ settings() {
 }
 
 installPkg(){
-  apt update
+  apt remove -y libpcre2-8-0
+  apt update -y
   apt install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2 rsync nftables pwgen make build-essential libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev
 
   echo "deb [signed-by=/etc/apt/trusted.gpg.d/suru.gpg] https://ftp.mpi-inf.mpg.de/mirrors/linux/mirror/deb.sury.org/repositories/php $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/sury-php.list
