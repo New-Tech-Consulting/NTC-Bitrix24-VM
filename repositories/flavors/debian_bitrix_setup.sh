@@ -248,8 +248,8 @@ configure_and_compile() {
         --prefix=/etc/nginx \
         --sbin-path=/usr/sbin/nginx \
         --conf-path=/etc/nginx/nginx.conf \
-        --error-log-path=/var/log/nginx/error.log \
-        --http-log-path=/var/log/nginx/access.log \
+        --error-log-path=/home/bitrix/logs/nginx/error.log \
+        --http-log-path=/home/bitrix/logs/nginx/access.log \
         --pid-path=/var/run/nginx.pid \
         --lock-path=/var/run/nginx.lock \
         --http-client-body-temp-path=/var/cache/nginx/client_temp \
@@ -257,8 +257,8 @@ configure_and_compile() {
         --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
         --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
         --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
-        --user=nginx \
-        --group=nginx \
+        --user=root \
+        --group=root \
         --with-openssl="/root/openssl-3.2.2" \
         --with-openssl-opt=enable-tls1_3 \
         --with-http_ssl_module \
