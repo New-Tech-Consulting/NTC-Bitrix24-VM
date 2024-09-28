@@ -222,6 +222,7 @@ installNginxWithModZip() {
   ./configure \
     --with-cc-opt='-g -O2 -ffile-prefix-map=/build/nginx-AoTv4W/nginx-1.26.1=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2' \
     --with-ld-opt='-Wl,-z,relro -Wl,-z,now
+    --with-pcre=/usr/lib/x86_64-linux-gnu
  -fPIC' \
     --prefix=/usr/share/nginx \
     --conf-path=/etc/nginx/nginx.conf \
