@@ -204,7 +204,6 @@ installPkg(){
 }
 
 installNginxWithModZip() {
-  chmod +r /usr/lib/x86_64-linux-gnu/libpcre.so.3.13.3
   apt update -y
 
   # Download Nginx source code
@@ -219,10 +218,12 @@ installNginxWithModZip() {
 
   # Compile and install Nginx with mod_zip
   cd nginx-$NGINX_VERSION
-  ./configure \
+  mkdir -p /var/lock
+  strace -f ./configure \
     --with-cc-opt='-g -O2 -ffile-prefix-map=/build/nginx-AoTv4W/nginx-1.26.1=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2' \
-    --with-ld-opt='-Wl,-z,relro -Wl,-z,now
-    --with-pcre=/usr/lib/x86_64-linux-gnu/libpcre.so.3.13.3
+    --with-ld-opt='-Wl,-z,relro -Wl,-z,now \
+    --with-pcre=/usr/lib/x86_64-linux-gnu/libpcre.so \
+    --with-zlib=/usr/lib/x86_64-linux-gnu/libz.so
  -fPIC' \
     --prefix=/usr/share/nginx \
     --conf-path=/etc/nginx/nginx.conf \
@@ -271,7 +272,7 @@ installNginxWithModZip() {
     --with-stream=dynamic \
     --with-stream_geoip_module=dynamic
  \
-    --add-module=../mod_zip-master \
+    --add-dynamic-module=/tmp/mod_zip-master \
     --with-openssl-opt='enable-tls1_3'
 
   make
