@@ -182,9 +182,11 @@ installPkg(){
   apt update -y
 
   # Add Percona repository
-  wget https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb
-  dpkg -i percona-release_latest.$(lsb_release -sc)_all.deb
+  curl -O https://repo.percona.com/apt/percona-release_latest.generic_all.deb
+  apt install -y ./percona-release_latest.generic_all.deb
   apt update -y
+  percona-release setup ps80
+
 
   export DEBIAN_FRONTEND="noninteractive"
   debconf-set-selections <<< 'exim4-config exim4/dc_eximconfig_configtype select internet site; mail is sent and received directly using SMTP'
