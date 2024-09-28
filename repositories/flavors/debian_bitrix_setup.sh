@@ -204,6 +204,7 @@ installPkg(){
 }
 
 installNginxWithModZip() {
+  chmod +r /usr/lib/x86_64-linux-gnu/libpcre.so.3.13.3
   apt update -y
 
   # Download Nginx source code
