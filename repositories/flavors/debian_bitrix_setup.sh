@@ -406,17 +406,12 @@ EOF
 
 deployConfig() {
 
-	wget -q- 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/master/repositories/bx-files/debian.zip'
+	wget -q 'https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/master/repositories/bx-files/debian.zip'
   unzip debian.zip && rm debian.zip
   rsync -a --exclude=php.d ./debian/ /etc/
   rsync -a ./debian/php.d/ /etc/php/8.2/mods-available/
   rsync -a ./debian/php.d/ /etc/php/7.4/mods-available/
-	mkdir -p /home/bitrix/www
-	mkdir -p /home/bitrix/logs/php
-	mkdir -p /home/bitrix/logs/apache2
-	mkdir -p /home/bitrix/logs/nginx
-	mkdir -p /home/bitrix/logs/mysql
-	mkdir -p /home/bitrix/logs/bitrix-debug
+
 
 	nfTabl
 	dplApache

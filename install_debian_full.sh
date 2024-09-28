@@ -49,6 +49,13 @@ bash -c 'echo "LC_ALL=\"en_US.UTF-8\"" >> /etc/environment'
 source /etc/default/locale
 export LC_ALL="en_US.UTF-8"
 
+mkdir -p /home/bitrix/www
+mkdir -p /home/bitrix/logs/php
+mkdir -p /home/bitrix/logs/apache2
+mkdir -p /home/bitrix/logs/nginx
+mkdir -p /home/bitrix/logs/mysql
+mkdir -p /home/bitrix/logs/bitrix-debug
+
 bash -c "$(curl -sL $SETUP_BITRIX_DEBIAN_URL)"
 
 source /root/run.sh
