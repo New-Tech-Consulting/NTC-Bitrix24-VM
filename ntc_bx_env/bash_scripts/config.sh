@@ -47,7 +47,7 @@ BS_PHP_INSTALL_TEMPLATE=(
   "php-redis"
 )
 
-BS_DOWNLOAD_BITRIX_CONFIGS="https://dev.1c-bitrix.ru/docs/chm_files/debian.zip"
+BS_DOWNLOAD_BITRIX_CONFIGS="https://raw.githubusercontent.com/New-Tech-Consulting/NTC-Bitrix24-VM/master/repositories/bx-files/debian.zip"
 
 # Ansible configs
 BS_ANSIBLE_RUN_PLAYBOOKS_PARAMS="-i localhost, -c local"
